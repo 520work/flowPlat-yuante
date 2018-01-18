@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>远特流量充值平台 - 登录</title>
+    <meta name="keywords" content="">
+    <meta name="description" content="">
+    <link rel="shortcut icon" href="favicon.ico">
+    <link href="css/bootstrap.min.css?v=3.3.6" rel="stylesheet">
+    <link href="css/font-awesome.css?v=4.4.0" rel="stylesheet">
+    <link href="css/animate.css" rel="stylesheet">
+    <link href="css/style.css?v=4.1.0" rel="stylesheet">
+    <link href="css/main.css" rel="stylesheet">
+    <!--[if lt IE 9]>
+    <meta http-equiv="refresh" content="0;ie.html" />
+    <![endif]-->
+    <script>
+    if (window.top !== window.self) { window.top.location = window.location; }
+    </script>
+</head>
+
+<body class="gray-bg loginwrap">
+    <!-- <div class="middle-box text-center loginscreen  animated fadeInDown"> -->
+    <div class="middle-box text-center loginscreen">
+        <div>
+            <div>
+                <h1 class="logo-name"><img alt="远特（北京）通信技术有限公司" src="images/logo_login.png" /></h1>
+            </div>
+            <h3>远特流量充值平台</h3>
+            <div class="m-t">
+                <div class="form-group">
+                    <input type="text" class="form-control" placeholder="用户名" id="userName">
+                </div>
+                <div class="form-group">
+                    <input type="password" class="form-control" placeholder="密码" id="passWord">
+                </div>
+                <button type="submit" class="btn btn-primary block full-width m-b" id="loginBtn">登 录</button>
+                <!-- <p class="text-muted text-center"> <a href="login.html#"><small>忘记密码了？</small></a> | <a href="register.html">注册一个新账号</a>
+                </p> -->
+            </div>
+        </div>
+    </div>
+    <!-- 全局js -->
+    <script src="js/jquery.min.js?v=2.1.4"></script>
+    <script src="js/bootstrap.min.js?v=3.3.6"></script>
+    <script src="js/plugins/layer/layer.min.js"></script>
+    <script src="js/Base64.js"></script>
+    <script src="js/md5.js"></script>
+    <script>
+    //防止页面后退
+    history.pushState(null, null, document.URL);
+    window.addEventListener('popstate', function() {
+        history.pushState(null, null, document.URL);
+    });
+    //请求地址变量
+    var ajaxUrl = "http://192.168.7.15:8089";
+    //点击登录按钮
+    $("#loginBtn").click(function() {
+        //验证获取用户名
+        var userName;
+        if ($("#userName").val() == "" || $("#userName").val().length == "0") {
+            parent.layer.tips('请填写用户名', '#userName');
+            return false;
+        } else {
+            userName = $("#userName").val();
+        };
+        //验证获取密码
+        var passWord;
+        if ($("#passWord").val() == "" || $("#passWord").val().length == "0") {
+            parent.layer.tips('请填写用户名', '#passWord');
+            return false;
+        } else {
+            passWord = $("#passWord").val();
+        };
+        //MD5加密密码
+        var md5PassWord = md5(passWord);
+        //将用户名和加密后的密码转换为json字符串
+        var loginData = JSON.stringify({
+            "userAccount": userName,
+            "userPassword": md5PassWord
+        });
+        //将登录json数据转换为base64字符串
+        var ecodeValue = base64encode(utf16to8(loginData));
+        //发起登录请求
+        $.ajax({
+            url: ajaxUrl + '/sas/login/verification?ecode=' + ecodeValue,
+            type: 'post',
+            dataType: 'text',
+            contentType: 'application/text;charset=UTF-8',
+            success: function(data) {
+                var result = utf8to16(base64decode(data.replace(/\s/g, '')));
+                result = JSON.parse(result);
+                // console.log(result);
+                if (result.code == "success") {
+                    var userData = JSON.parse(result.date);
+                    // 判断用户是否绑定手机 userData[1] == undefined 结果为true 则用户未绑定手机
+                    if (userData[0].spMobile == undefined) {
+                        window.sessionStorage.userName = userData[0].userName;
+                        window.sessionStorage.userAccount = userData[0].userAccount;
+                        window.sessionStorage.serviceNo = userData[0].serviceNo;
+                        window.sessionStorage.balance = userData[0].balance;
+                        window.sessionStorage.spMobile = undefined;
+                        window.sessionStorage.bindPhone = false;
+                        window.location.href = "index.html";
+                    } else {
+                        window.sessionStorage.userName = userData[0].userName;
+                        window.sessionStorage.userAccount = userData[0].userAccount;
+                        window.sessionStorage.serviceNo = userData[0].serviceNo;
+                        window.sessionStorage.balance = userData[0].balance;
+                        window.sessionStorage.spMobile = userData[0].spMobile;
+                        window.location.href = "index.html";
+                    };
+                } else if (result.code == "false") {
+                    layer.alert(result.msg);
+                } else {
+                    layer.alert("服务器异常，请稍后重新登录");
+                }
+
+            },
+            error: function(err) {
+                // console.log(err);
+            }
+        });
+    });
+    $(document).keyup(function(event) {
+        if (event.keyCode == 13) {
+            $("#loginBtn").trigger("click");
+        }
+    });
+    </script>
+</body>
+
+</html>

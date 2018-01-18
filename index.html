@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="renderer" content="webkit">
+    <title>远特流量充值平台</title>
+    <meta name="keywords" content="">
+    <meta name="description" content="">
+    <!--[if lt IE 9]>
+    <meta http-equiv="refresh" content="0;ie.html" />
+    <![endif]-->
+    <link rel="shortcut icon" href="favicon.ico">
+    <link href="css/bootstrap.min.css?v=3.3.6" rel="stylesheet">
+    <link href="css/font-awesome.min.css?v=4.4.0" rel="stylesheet">
+    <link href="css/animate.css" rel="stylesheet">
+    <link href="css/style.css?v=4.1.0" rel="stylesheet">
+    <link href="css/main.css" rel="stylesheet">
+</head>
+
+<body class="fixed-sidebar full-height-layout gray-bg" style="overflow:hidden">
+    <div id="wrapper">
+        <!--左侧导航开始-->
+        <nav class="navbar-default navbar-static-side" role="navigation">
+            <div class="nav-close"><i class="fa fa-times-circle"></i>
+            </div>
+            <div class="sidebar-collapse">
+                <ul class="nav" id="side-menu">
+                    <li class="nav-header">
+                        <div class="dropdown profile-element">
+                            <div class="logo">
+                                <img alt="远特（北京）通信技术有限公司" src="images/logo.png" />
+                            </div>
+                            <p class="dropdown-toggle clear">
+                                <span class="block m-t-xs">
+                                    <strong class="font-bold">
+                                        <label id="userAccount"></label>
+                                    </strong>
+                                </span>
+                                <span class="text-xs block">
+                                        <i class="fa fa-cny" style="color:gold"></i>
+                                        <label id="userBalance" style="margin-left:5px;color:white;"></label>
+                                        <a id="btnGetBalance" href="javascript:;" style="margin-left: 5px; display: inline;"><i class="fa fa-refresh"></i></a>
+                                        <i id="btnBal2" class="fa fa-spinner" style="display: none;"></i>
+                                </span>
+                            </p>
+                        </div>
+                    </li>
+                    <li>
+                        <a href="flowRecharge.html" class="J_menuItem" id="spnav" data-index="0">
+                            <i class="icon iconfont icon-liuliangchongzhi"></i>
+                            <span class="nav-label">充值</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a id="queryFlowNav" class="J_menuItem" href="queryFlow.html"><i class="icon iconfont icon-liuliangbaochaxunicon"></i> <span class="nav-label">查询</span></a>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+        <!--左侧导航结束-->
+        <!--右侧部分开始-->
+        <div id="page-wrapper" class="gray-bg dashbard-1">
+            <div class="row border-bottom">
+                <nav class="navbar navbar-static-top" role="navigation" style="margin-bottom: 0">
+                    <div class="navbar-header"><a class="navbar-minimalize minimalize-styl-2 btn btn-primary " href="#"><i class="fa fa-bars"></i> </a>
+                    </div>
+                </nav>
+            </div>
+            <div class="row content-tabs">
+                <button class="roll-nav roll-left J_tabLeft"><i class="fa fa-backward"></i>
+                </button>
+                <nav class="page-tabs J_menuTabs">
+                    <div class="page-tabs-content">
+                        <a href="javascript:;" class="active J_menuTab" data-id="flowRecharge.html">充值</a>
+                    </div>
+                </nav>
+                <button class="roll-nav roll-right J_tabRight"><i class="fa fa-forward"></i>
+                </button>
+                <div class="btn-group roll-nav roll-right">
+                    <button class="dropdown J_tabClose" data-toggle="dropdown">关闭操作<span class="caret"></span>
+                    </button>
+                    <ul role="menu" class="dropdown-menu dropdown-menu-right">
+                        <li class="J_tabShowActive"><a>定位当前选项卡</a>
+                        </li>
+                        <li class="divider"></li>
+                        <li class="J_tabCloseAll"><a>关闭全部选项卡</a>
+                        </li>
+                        <li class="J_tabCloseOther"><a>关闭其他选项卡</a>
+                        </li>
+                    </ul>
+                </div>
+                <a href="javascript:logoutFun()" class="roll-nav roll-right J_tabExit"><i class="fa fa fa-sign-out"></i> 退出</a>
+            </div>
+            <div class="row J_mainContent" id="content-main">
+                <iframe class="J_iframe" name="iframe0" width="100%" height="100%" src="flowRecharge.html" frameborder="0" data-id="flowRecharge.html" seamless></iframe>
+            </div>
+            <div class="footer">
+                <div class="pull-right">2005-2016 版权所有 &copy; <a href="http://www.yuantel.com/" target="_blank">远特（北京）通信技术有限公司</a>
+                </div>
+            </div>
+        </div>
+        <!--右侧部分结束-->
+    </div>
+    <div class="modal inmodal" id="myModal" tabindex="-1" role="dialog" aria-hidden="true" data-backdrop="static">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <!-- <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">关闭</span>
+                    </button> -->
+                    <h5 class="modal-title" style="text-align: left;">绑定手机</h5>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group" style="text-align: center;">
+                        <div style="display:inline-block;margin-top: 15px;">
+                            <label style="margin-bottom: 15px;text-align: left;display: block;">手机号码：</label>
+                            <input id="bindPhoneTxt" style="margin-bottom: 15px;" type="text" placeholder="请输入您需要绑定的手机号码" class="form-control">
+                            <input id="duanxinCodeNum" style="width:58%;float:left;" class="form-control" placeholder="6位动态验证码" type="text" />
+                            <input style="width:41%;float:right;" class="btn btn-primary" id="getDuanxinCode" type="button" value="获取验证码" />
+                        </div>
+                    </div>
+                    <p style="text-align: center;">为了保障您的帐号安全，绑定手机需验证身份</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-white" id="btnCloseModel" data-dismiss="modal">关闭</button>
+                    <button type="button" class="btn btn-primary" id="btnSave">保存</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="quitOut">
+        <p><span>10</span>s后将自动退出系统。</p>
+    </div>
+    <!-- 全局js -->
+    <script src="js/jquery.min.js?v=2.1.4"></script>
+    <script src="js/bootstrap.min.js?v=3.3.6"></script>
+    <script src="js/plugins/metisMenu/jquery.metisMenu.js"></script>
+    <script src="js/plugins/slimscroll/jquery.slimscroll.min.js"></script>
+    <script src="js/plugins/layer/layer.min.js"></script>
+    <script src="js/Base64.js"></script>
+    <!-- 自定义js -->
+    <script src="js/hplus.js?v=4.1.0"></script>
+    <script type="text/javascript" src="js/contabs.js"></script>
+    <!-- 第三方插件 -->
+    <script src="js/plugins/pace/pace.min.js"></script>
+    <script>
+    var ajaxUrl = "http://192.168.7.15:8089";
+    var setTime;
+    $(document).ready(function() {
+        //判断浏览器是否有缓存信息 如果有 正常载入页面 如果没有 进入登录页
+        if (window.sessionStorage.userAccount == undefined) {
+            window.location.href = "login.html";
+        } else {
+            //默认显示用户名
+            $("#userAccount").html(window.sessionStorage.userAccount);
+            //显示余额
+            $("#userBalance").html(window.sessionStorage.balance / 100 + " 元");
+            //点击余额刷新图标动态效果
+            var num = 1;
+            $("#btnGetBalance").click(function() {
+                $("#btnGetBalance i").css({
+                    'transition': 'all 0.8s ease-in-out',
+                    'transform': 'rotate(' + 180 * num + 'deg)',
+                    '-moz-transform': 'rotate(' + 180 * num + 'deg)',
+                    '-o-transform': 'rotate(' + 180 * num + 'deg)'
+                });
+                num++;
+                getBalance();
+            });
+            //确认用户是否绑定手机
+            if (window.sessionStorage.bindPhone == "false") {
+
+                //如果用户没有绑定手机 则显示绑定手机的模态框
+                $('#myModal').modal("show");
+
+                //点击 绑定手机模态框 取消按钮 操作流程
+                $("#btnCloseModel").click(function() {
+                    loseBindFun();
+                });
+
+                //获取短信验证码
+                getCode();
+
+                //绑定手机模态框确认按钮操作
+                bindPhoneFun();
+            };
+        };
+    });
+
+    //余额查询
+    var getBalance = function() {
+        $.ajax({
+            url: ajaxUrl + '/sas/query/getBalance',
+            type: 'post',
+            dataType: 'text',
+            contentType: 'application/text;charset=UTF-8',
+            success: function(data) {
+                var result = utf8to16(base64decode(data.replace(/\s/g, '')));
+                result = JSON.parse(result);
+                // console.log(result);
+                if (result.code == "200") {
+                    $("#userBalance").html(result.data.leftFee / 100 + " 元");
+                } else {
+                    //layer.alert("服务器异常，请稍后手动刷新页面");
+                };
+            },
+            error: function(err) {
+                // console.log(err);
+            }
+        });
+    };
+
+    //放弃绑定或绑定失败
+    var loseBindFun = function() {
+        //十秒退出倒计时
+        var time = 10;
+        setTime = setInterval(function() {
+            if (time <= 0) {
+                clearInterval(setTime);
+                window.location.href = "login.html";
+                window.sessionStorage.clear();
+                return;
+            }
+            time--;
+            $('.layui-layer-content span').html(time);
+        }, 1000);
+        //打开倒计时弹窗
+        layer.open({
+            content: $('#quitOut').html(),
+            time: 10000, //10s后自动关闭
+            closeBtn: 0,
+            btn: ['直接退出', '重新绑定'],
+            yes: function() {
+                clearInterval(setTime);
+                window.location.href = "login.html";
+                window.sessionStorage.clear();
+            },
+            cancel: function() {
+                clearInterval(setTime);
+                $('#myModal').modal("show");
+            }
+        });
+    };
+    //获取短信验证码
+    var getCode = function() {
+        $("#getDuanxinCode").click(function() {
+            //验证手机号码
+            var regMobilezh = /^1(3|4|5|7|8)\d{9}$/;
+            var sendPhoneVal;
+            if ($("#bindPhoneTxt").val() == "" || $("#bindPhoneTxt").val().length == "0") {
+                layer.tips('手机号码不能为空！', '#bindPhoneTxt', {
+                    tips: [1, '#78BA32']
+                });
+                return false;
+            };
+            if (!regMobilezh.test($("#bindPhoneTxt").val())) {
+                layer.tips('手机号码格式错误！', '#bindPhoneTxt', {
+                    tips: [1, '#78BA32']
+                });
+                return false;
+            };
+            var sendPhoneVal = $("#bindPhoneTxt").val();
+
+            //存储参数串
+            var data = JSON.stringify({
+                'userAccount': window.sessionStorage.userAccount,
+                'phone': sendPhoneVal
+            });
+            //对参数串进行base64加密
+            var dataValue = base64encode(utf16to8(data));
+            //发起获取验证码请求
+            $.ajax({
+                url: ajaxUrl + '/sas/phone/sendMessage?ecode=' + dataValue,
+                type: 'post',
+                dataType: 'text',
+                contentType: 'application/text;charset=UTF-8',
+                success: function(data) {
+                    var result = utf8to16(base64decode(data.replace(/\s/g, '')));
+                    result = JSON.parse(result);
+                    // console.log(result);
+                    if (result.msg == "success") {
+                        layer.msg("验证码已发送，请注意查收", { icon: 1 });
+                        var setTime;
+                        var time = 60;
+                        setTime = setInterval(function() {
+                            if (time <= 0) {
+                                clearInterval(setTime);
+                                $("#getDuanxinCode").attr("disabled", false);
+                                $("#getDuanxinCode").val("获取验证码");
+                                return;
+                            }
+                            time--;
+                            $("#getDuanxinCode").val(time + "s后重新获取");
+                            $("#getDuanxinCode").attr("disabled", true);
+                        }, 1000);
+                    } else {
+                        layer.msg("验证码发送失败，请重新获取", { icon: 1 });
+                    };
+                },
+                error: function(err) {
+                    // console.log(err);
+                }
+            });
+        });
+    };
+    //绑定手机
+    var bindPhoneFun = function() {
+        $("#btnSave").click(function() {
+            //验证手机号码
+            var regMobilezh = /^1(3|4|5|7|8)\d{9}$/;
+            var bindPhoneVal;
+            if ($("#bindPhoneTxt").val() == "" || $("#bindPhoneTxt").val().length == "0") {
+                layer.tips('手机号码不能为空！', '#bindPhoneTxt', {
+                    tips: [1, '#78BA32']
+                });
+                return false;
+            };
+            if (!regMobilezh.test($("#bindPhoneTxt").val())) {
+                layer.tips('手机号码格式错误！', '#bindPhoneTxt', {
+                    tips: [1, '#78BA32']
+                });
+                return false;
+            };
+
+            bindPhoneVal = $("#bindPhoneTxt").val();
+
+            //验证短信验证码
+            var regNumber = /^\d{6}$/;
+            var duanxinCodeVal;
+            if ($("#duanxinCodeNum").val() == "" || $("#duanxinCodeNum").val().length == "0") {
+                layer.tips('短信验证码不能为空！', '#duanxinCodeNum', {
+                    tips: [1, '#78BA32']
+                });
+                return false;
+            };
+            if (!regNumber.test($("#duanxinCodeNum").val())) {
+                layer.tips('验证码格式错误！', '#duanxinCodeNum', {
+                    tips: [1, '#78BA32']
+                });
+                return false;
+            };
+            duanxinCodeVal = $("#duanxinCodeNum").val();
+
+            //存储参数串
+            var data = JSON.stringify({
+                'userAccount': window.sessionStorage.userAccount,
+                'code': duanxinCodeVal,
+                'phone': bindPhoneVal
+            });
+            //对参数串进行base64加密
+            var dataValue = base64encode(utf16to8(data));
+            //发起绑定用户电话请求
+            $.ajax({
+                url: ajaxUrl + '/sas/phone/bangding?ecode=' + dataValue,
+                type: 'post',
+                dataType: 'text',
+                contentType: 'application/text;charset=UTF-8',
+                success: function(data) {
+                    var result = utf8to16(base64decode(data.replace(/\s/g, '')));
+                    result = JSON.parse(result);
+                    // console.log(result);
+                    if (result.msg == "success") {
+                        parent.layer.msg('绑定成功', { icon: 1 });
+                        window.sessionStorage.spMobile = bindPhoneVal;
+                        window.sessionStorage.bindPhone = true;
+                        $('#myModal').modal("hide");
+                    } else {
+                        parent.layer.msg(result.msg, { icon: 2 });
+                        //清空短信验证码输入框
+                        $("#duanxinCodeNum").val("");
+                    }
+                },
+                error: function(err) {
+                    // console.log(err);
+                }
+            });
+            //清空短信验证码输入框
+            $("#duanxinCodeNum").val("");
+        });
+    };
+    //退出
+    var logoutFun = function() {
+        window.location.href = "login.html";
+        window.sessionStorage.clear();
+    };
+    </script>
+</body>
+
+</html>

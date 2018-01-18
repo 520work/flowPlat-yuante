@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!--360浏览器优先以webkit内核解析-->
+    <title></title>
+    <link rel="shortcut icon" href="favicon.ico">
+    <link href="css/bootstrap.min.css?v=3.3.6" rel="stylesheet">
+    <link href="css/font-awesome.css?v=4.4.0" rel="stylesheet">
+    <link href="css/animate.css" rel="stylesheet">
+    <link href="css/style.css?v=4.1.0" rel="stylesheet">
+    <link href="css/main.css" rel="stylesheet">
+</head>
+
+<body class="qfwrapper gray-bg">
+    <div class="wrapper wrapper-content animated fadeInRight">
+        <div class="ibox-content">
+            <form method="get" class="form-horizontal">
+                <div class="form-group" style="margin-bottom: 0px;padding-left: 2%;">
+                    <label class="col-sm-1 control-label">时间：</label>
+                    <div class="col-sm-2">
+                        <input placeholder="开始日期" class="form-control layer-date" id="start">
+                    </div>
+                    <div class="col-sm-2">
+                        <input placeholder="结束日期" class="form-control layer-date" id="end">
+                    </div>
+                    <label class="col-sm-1 control-label">号码：</label>
+                    <div class="col-sm-3">
+                        <input id="txtphone" type="text" class="form-control" name="txtphone">
+                    </div>
+                    <div class="col-sm-2">
+                        <input class="btn btn-primary" type="button" id="orderQueryBtn" value="订单查询">
+                        <div id="slSpinner" class="sk-spinner sk-spinner-three-bounce" style="display: none;">
+                            <div class="sk-bounce1"></div>
+                            <div class="sk-bounce2"></div>
+                            <div class="sk-bounce3"></div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+        <div class="row">
+            <div class="col-sm-12">
+                <table class="table" style="background-color: white;" id="queryTable">
+                    <thead>
+                        <tr>
+                            <th>订单ID</th>
+                            <th>订单号</th>
+                            <th>手机号码</th>
+                            <th>充值时间</th>
+                            <th>充值结果</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <!-- 全局js -->
+    <script src="js/jquery.min.js?v=2.1.4"></script>
+    <script src="js/bootstrap.min.js?v=3.3.6"></script>
+    <script src="js/plugins/jeditable/jquery.jeditable.js"></script>
+    <script src="js/plugins/dataTables/jquery.dataTables.js"></script>
+    <script src="js/plugins/dataTables/dataTables.bootstrap.js"></script>
+    <script src="js/plugins/layer/layer.min.js"></script>
+    <script src="js/Base64.js"></script>
+    <!-- 自定义js -->
+    <script src="js/content.js?v=1.0.0"></script>
+    <!-- layerDate plugin javascript -->
+    <script src="js/plugins/layer/laydate/laydate.js"></script>
+    <script>
+    var ajaxUrl = "http://192.168.7.15:8089";
+    //日期范围限制
+    var start = {
+        elem: '#start',
+        format: 'YYYY-MM-DD',
+        //min: laydate.now(), //设定最小日期为当前日期
+        max: '2099-06-16 23:59:59', //最大日期
+        istime: true,
+        istoday: false,
+        choose: function(datas) {
+            end.min = datas; //开始日选好后，重置结束日的最小日期
+            end.start = datas //将结束日的初始值设定为开始日
+        }
+    };
+    var end = {
+        elem: '#end',
+        format: 'YYYY-MM-DD',
+        //min: laydate.now(),
+        max: '2099-06-16 23:59:59',
+        istime: true,
+        istoday: false,
+        choose: function(datas) {
+            start.max = datas; //结束日选好后，重置开始日的最大日期
+        }
+    };
+    laydate(start);
+    laydate(end);
+    $(document).ready(function() {
+        //订单查询
+        $("#orderQueryBtn").click(function() {
+            queryOrder();
+        });
+    });
+    var queryOrder = function() {
+        //验证开始时间
+        var startTime;
+        if ($("#start").val() == "" || $("#start").val().length == "0") {
+            layer.tips('开始时间不能为空', '#start', {
+                tips: [1, '#78BA32']
+            });
+            return false;
+        } else {
+            startTime = $("#start").val();
+        };
+        //验证结束时间
+        var endTime;
+        if ($("#end").val() == "" || $("#end").val().length == "0") {
+            layer.tips('结束时间不能为空', '#end', {
+                tips: [1, '#78BA32']
+            });
+            return false;
+        } else {
+            endTime = $("#end").val();
+        };
+        //验证手机号码
+        var regMobilezh = /^1(3|4|5|7|8)\d{9}$/;
+        var queryPhoneNum;
+        if ($("#txtphone").val() == "" || $("#txtphone").val().length == "0") {
+            layer.tips('手机号码不能为空！', '#txtphone', {
+                tips: [1, '#78BA32']
+            });
+            return false;
+        };
+        if (!regMobilezh.test($("#txtphone").val())) {
+            layer.tips('手机号码格式错误！', '#txtphone', {
+                tips: [1, '#78BA32']
+            });
+            return false;
+
+        } else {
+            queryPhoneNum = $("#txtphone").val();
+        };
+
+        //商户和用户传递参数判断 查询用户时 需要传递log参数 不为空即可
+        if (queryPhoneNum == window.sessionStorage.spMobile) {
+            var data = JSON.stringify({
+                'phone': queryPhoneNum,
+                'startTime': startTime,
+                'endTime': endTime
+            });
+        } else {
+            var data = JSON.stringify({
+                'phone': queryPhoneNum,
+                'log': 'userphone',
+                'startTime': startTime,
+                'endTime': endTime
+            });
+        };
+
+        var dataValue = base64encode(utf16to8(data));
+        $.ajax({
+            url: ajaxUrl + '/sas/query/getOrderForDate?ecode=' + dataValue,
+            type: 'post',
+            dataType: 'text',
+            contentType: 'application/text;charset=UTF-8',
+            success: function(data) {
+                var result = utf8to16(base64decode(data.replace(/\s/g, '')));
+                result = JSON.parse(result);
+                // console.log(result);
+                //处理结果返回的状态值为对应文字说明
+                var queryListsLen = result.length;
+                for (var i = 0; i < queryListsLen; i++) {
+                    var orderState = result[i].callBackState;
+                    if (orderState == "0") {
+                        result[i].callBackState = "成功";
+                    } else if (orderState == "1") {
+                        result[i].callBackState = "失败";
+                    } else if (orderState == "2") {
+                        result[i].callBackState = "未返回";
+                    } else {
+                        result[i].callBackState = "报错";
+                    };
+                    result[i].createTime = format(result[i].createTime, "yyyy-MM-dd HH:mm:ss");
+                };
+                //销毁表格
+                $("#queryTable").dataTable().fnDestroy();
+                //初始化表格
+                $('#queryTable').DataTable({
+                    "data": result, //数据源
+                    // "sScrollX": "100%",
+                    // "sScrollXInner": "110%",
+                    // "bScrollCollapse": true,
+                    "bRetrieve": true, //指明当执行dataTable绑定时，是否返回DataTable对象
+                    "bDestroy": true, //当要在同一个元素上执行新的dataTable绑定时，将之前的那个数据对象清除掉，换以新的对象设置
+                    "bPaginate": true, //是否分页。
+                    "bLengthChange": false, //是否允许自定义每页显示条数.
+                    "iDisplayStart": 0,
+                    "iDisplayLength": 10, //每页显示10条记录
+                    "bAutoWidth": true,
+                    "bProcessing": false, //以指定当正在处理数据的时候，是否显示“正在处理”这个提示信息
+                    "bFilter": false, //搜索
+                    "bJQueryUI": true, //页面风格使用jQuery.
+                    "bSort": false, //是否使用排序,
+                    "bInfo": true, //显示表格信息
+                    "aoColumns": [
+                        { data: 'prdCode' },
+                        { data: 'orderId' },
+                        { data: 'phone' },
+                        { data: 'createTime' },
+                        { data: 'callBackState' }
+                    ]
+                });
+                $("#queryTable th").css("width","20%");
+                $("#queryTable td").css("width","20%");
+            },
+            error: function(err) {
+                // console.log(err);
+            }
+        });
+    };
+    //格式化日期
+    var format = function(time, format) {
+        var t = new Date(time);
+        var tf = function(i) { return (i < 10 ? '0' : '') + i };
+        return format.replace(/yyyy|MM|dd|HH|mm|ss/g, function(a) {
+            switch (a) {
+                case 'yyyy':
+                    return tf(t.getFullYear());
+                    break;
+                case 'MM':
+                    return tf(t.getMonth() + 1);
+                    break;
+                case 'mm':
+                    return tf(t.getMinutes());
+                    break;
+                case 'dd':
+                    return tf(t.getDate());
+                    break;
+                case 'HH':
+                    return tf(t.getHours());
+                    break;
+                case 'ss':
+                    return tf(t.getSeconds());
+                    break;
+            }
+        })
+    };
+    </script>
+</body>
+
+</html>
