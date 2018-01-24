@@ -1,5 +1,5 @@
 //ajaxUrl
-var ajaxUrl = "http://61.135.223.13:8089/";
+var ajaxUrl = "http://61.135.223.13:8089";
 //定时器变量
 var setTime;
 $(document).ready(function() {
@@ -34,8 +34,10 @@ $(document).ready(function() {
                     '-o-transform': 'rotate(' + 180 * num + 'deg)'
                 });
                 num++;
-                var pages = "index";
-                getBalance(pages);
+                setTimeout(function() {
+                    var pages = "index";
+                    getBalance(pages);
+                }, 800);
             });
             //确认用户是否绑定手机
             if (window.sessionStorage.bindPhone == "false") {
@@ -49,7 +51,9 @@ $(document).ready(function() {
                 });
 
                 //获取短信验证码
-                getCode();
+                var node = $("#getDuanxinCode");
+                var useToDo = "useToBind";
+                getCode(node, useToDo);
 
                 //绑定手机模态框确认按钮操作
                 bindPhoneFun();
@@ -69,13 +73,15 @@ $(document).ready(function() {
         //获取全部产品类别并填入对应的选项
         setProducts();
         //获取验证码
-        getCodeFlow();
+        var node = $("#getrandomcode");
+        var useToDo = "useToPay";
+        getCode(node, useToDo);
         //充值
         flowPay();
     };
     //订单查询页面
     if ($("#orderQueryBtn").height() != null) {
-    	//初始化查询日期
+        //初始化查询日期
         laydate(start);
         laydate(end);
         //订单查询
@@ -84,6 +90,11 @@ $(document).ready(function() {
         });
     };
 });
+
+/*
+ **功能函数
+ */
+
 //防止页面后退
 var stopBackFun = function() {
     history.pushState(null, null, document.URL);
@@ -91,108 +102,11 @@ var stopBackFun = function() {
         history.pushState(null, null, document.URL);
     });
 };
-//登录
-var loginFun = function() {
-    $("#loginBtn").click(function() {
-        //验证获取用户名
-        var userName;
-        if ($("#userName").val() == "" || $("#userName").val().length == "0") {
-            parent.layer.tips('请填写用户名', '#userName');
-            return false;
-        } else {
-            userName = $("#userName").val();
-        };
-        //验证获取密码
-        var passWord;
-        if ($("#passWord").val() == "" || $("#passWord").val().length == "0") {
-            parent.layer.tips('请填写用户名', '#passWord');
-            return false;
-        } else {
-            passWord = $("#passWord").val();
-        };
-        //MD5加密密码
-        var md5PassWord = md5(passWord);
-        //将用户名和加密后的密码转换为json字符串
-        var loginData = JSON.stringify({
-            "userAccount": userName,
-            "userPassword": md5PassWord
-        });
-        //将登录json数据转换为base64字符串
-        var ecodeValue = base64encode(utf16to8(loginData));
-        //发起登录请求
-        $.ajax({
-            url: ajaxUrl + '/sas/login/verification?ecode=' + ecodeValue,
-            type: 'post',
-            dataType: 'text',
-            contentType: 'application/text;charset=UTF-8',
-            success: function(data) {
-                var result = utf8to16(base64decode(data.replace(/\s/g, '')));
-                result = JSON.parse(result);
-                // console.log(result);
-                if (result.code == "success") {
-                    var userData = JSON.parse(result.date);
-                    // 判断用户是否绑定手机 userData[1] == undefined 结果为true 则用户未绑定手机
-                    if (userData[0].spMobile == undefined) {
-                        window.sessionStorage.userName = userData[0].userName;
-                        window.sessionStorage.userAccount = userData[0].userAccount;
-                        window.sessionStorage.serviceNo = userData[0].serviceNo;
-                        window.sessionStorage.balance = userData[0].balance;
-                        window.sessionStorage.spMobile = undefined;
-                        window.sessionStorage.bindPhone = false;
-                        window.location.href = "index.html";
-                    } else {
-                        window.sessionStorage.userName = userData[0].userName;
-                        window.sessionStorage.userAccount = userData[0].userAccount;
-                        window.sessionStorage.serviceNo = userData[0].serviceNo;
-                        window.sessionStorage.balance = userData[0].balance;
-                        window.sessionStorage.spMobile = userData[0].spMobile;
-                        window.location.href = "index.html";
-                    };
-                } else if (result.code == "false") {
-                    layer.alert(result.msg);
-                } else {
-                    layer.alert("服务器异常，请稍后重新登录");
-                }
-
-            },
-            error: function(err) {
-                layer.alert("服务器异常，请稍后重新登录");
-            }
-        });
-    });
-};
 //按回车触发登录
 var enterFun = function() {
     $(document).keyup(function(event) {
         if (event.keyCode == 13) {
             $("#loginBtn").trigger("click");
-        }
-    });
-};
-//余额查询
-var getBalance = function(pages) {
-    $.ajax({
-        url: ajaxUrl + '/sas/query/getBalance',
-        type: 'post',
-        dataType: 'text',
-        contentType: 'application/text;charset=UTF-8',
-        success: function(data) {
-            var result = utf8to16(base64decode(data.replace(/\s/g, '')));
-            result = JSON.parse(result);
-            // console.log(result);
-            if (result.code == "200") {
-                if (pages == "index") {
-                    $("#userBalance").html(result.data.leftFee / 100 + " 元");
-                } else {
-                    var mybalance = window.parent.document.getElementById("userBalance");
-                    mybalance.innerHTML = result.data.leftFee / 100 + " 元";
-                };
-            } else {
-                layer.alert("查询余额失败，请稍后重新查询");
-            };
-        },
-        error: function(err) {
-            layer.alert("查询余额失败，请稍后重新查询");
         }
     });
 };
@@ -225,143 +139,6 @@ var loseBindFun = function() {
             clearInterval(setTime);
             $('#myModal').modal("show");
         }
-    });
-};
-//获取短信验证码 -- 首页
-var getCode = function() {
-    $("#getDuanxinCode").click(function() {
-        //验证手机号码
-        var regMobilezh = /^1(3|4|5|7|8)\d{9}$/;
-        var sendPhoneVal;
-        if ($("#bindPhoneTxt").val() == "" || $("#bindPhoneTxt").val().length == "0") {
-            layer.tips('手机号码不能为空！', '#bindPhoneTxt', {
-                tips: [1, '#78BA32']
-            });
-            return false;
-        };
-        if (!regMobilezh.test($("#bindPhoneTxt").val())) {
-            layer.tips('手机号码格式错误！', '#bindPhoneTxt', {
-                tips: [1, '#78BA32']
-            });
-            return false;
-        };
-        var sendPhoneVal = $("#bindPhoneTxt").val();
-
-        //存储参数串
-        var data = JSON.stringify({
-            'userAccount': window.sessionStorage.userAccount,
-            'phone': sendPhoneVal
-        });
-        //对参数串进行base64加密
-        var dataValue = base64encode(utf16to8(data));
-        //发起获取验证码请求
-        $.ajax({
-            url: ajaxUrl + '/sas/phone/sendMessage?ecode=' + dataValue,
-            type: 'post',
-            dataType: 'text',
-            contentType: 'application/text;charset=UTF-8',
-            success: function(data) {
-                var result = utf8to16(base64decode(data.replace(/\s/g, '')));
-                result = JSON.parse(result);
-                // console.log(result);
-                if (result.msg == "success") {
-                    layer.msg("验证码已发送，请注意查收", { icon: 1 });
-                    var setTime;
-                    var time = 60;
-                    setTime = setInterval(function() {
-                        if (time <= 0) {
-                            clearInterval(setTime);
-                            $("#getDuanxinCode").attr("disabled", false);
-                            $("#getDuanxinCode").val("获取验证码");
-                            return;
-                        }
-                        time--;
-                        $("#getDuanxinCode").val(time + "s后重新获取");
-                        $("#getDuanxinCode").attr("disabled", true);
-                    }, 1000);
-                } else {
-                    layer.msg("验证码发送失败，请重新获取");
-                };
-            },
-            error: function(err) {
-                layer.msg("验证码发送失败，请重新获取");
-            }
-        });
-    });
-};
-//绑定手机
-var bindPhoneFun = function() {
-    $("#btnSave").click(function() {
-        //验证手机号码
-        var regMobilezh = /^1(3|4|5|7|8)\d{9}$/;
-        var bindPhoneVal;
-        if ($("#bindPhoneTxt").val() == "" || $("#bindPhoneTxt").val().length == "0") {
-            layer.tips('手机号码不能为空！', '#bindPhoneTxt', {
-                tips: [1, '#78BA32']
-            });
-            return false;
-        };
-        if (!regMobilezh.test($("#bindPhoneTxt").val())) {
-            layer.tips('手机号码格式错误！', '#bindPhoneTxt', {
-                tips: [1, '#78BA32']
-            });
-            return false;
-        };
-
-        bindPhoneVal = $("#bindPhoneTxt").val();
-
-        //验证短信验证码
-        var regNumber = /^\d{6}$/;
-        var duanxinCodeVal;
-        if ($("#duanxinCodeNum").val() == "" || $("#duanxinCodeNum").val().length == "0") {
-            layer.tips('短信验证码不能为空！', '#duanxinCodeNum', {
-                tips: [1, '#78BA32']
-            });
-            return false;
-        };
-        if (!regNumber.test($("#duanxinCodeNum").val())) {
-            layer.tips('验证码格式错误！', '#duanxinCodeNum', {
-                tips: [1, '#78BA32']
-            });
-            return false;
-        };
-        duanxinCodeVal = $("#duanxinCodeNum").val();
-
-        //存储参数串
-        var data = JSON.stringify({
-            'userAccount': window.sessionStorage.userAccount,
-            'code': duanxinCodeVal,
-            'phone': bindPhoneVal
-        });
-        //对参数串进行base64加密
-        var dataValue = base64encode(utf16to8(data));
-        //发起绑定用户电话请求
-        $.ajax({
-            url: ajaxUrl + '/sas/phone/bangding?ecode=' + dataValue,
-            type: 'post',
-            dataType: 'text',
-            contentType: 'application/text;charset=UTF-8',
-            success: function(data) {
-                var result = utf8to16(base64decode(data.replace(/\s/g, '')));
-                result = JSON.parse(result);
-                // console.log(result);
-                if (result.msg == "success") {
-                    parent.layer.msg('绑定成功', { icon: 1 });
-                    window.sessionStorage.spMobile = bindPhoneVal;
-                    window.sessionStorage.bindPhone = true;
-                    $('#myModal').modal("hide");
-                } else {
-                    parent.layer.msg(result.msg, { icon: 2 });
-                    //清空短信验证码输入框
-                    $("#duanxinCodeNum").val("");
-                }
-            },
-            error: function(err) {
-                parent.layer.msg('绑定失败');
-            }
-        });
-        //清空短信验证码输入框
-        $("#duanxinCodeNum").val("");
     });
 };
 //退出
@@ -484,6 +261,379 @@ var popupWindow = function() {
         });
     });
 };
+//格式化日期
+var format = function(time, format) {
+    var t = new Date(time);
+    var tf = function(i) { return (i < 10 ? '0' : '') + i };
+    return format.replace(/yyyy|MM|dd|HH|mm|ss/g, function(a) {
+        switch (a) {
+            case 'yyyy':
+                return tf(t.getFullYear());
+                break;
+            case 'MM':
+                return tf(t.getMonth() + 1);
+                break;
+            case 'mm':
+                return tf(t.getMinutes());
+                break;
+            case 'dd':
+                return tf(t.getDate());
+                break;
+            case 'HH':
+                return tf(t.getHours());
+                break;
+            case 'ss':
+                return tf(t.getSeconds());
+                break;
+        }
+    })
+};
+//生成6位随机字符串
+/*
+ ** randomWord 产生任意长度随机字母数字组合
+ ** randomFlag-是否任意长度 min-任意长度最小位[固定位数] max-任意长度最大位
+ */
+function randomWord(randomFlag, min, max) {
+    var str = "",
+        range = min,
+        arr = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'];
+
+    // 随机产生
+    if (randomFlag) {
+        range = Math.round(Math.random() * (max - min)) + min;
+    }
+    for (var i = 0; i < range; i++) {
+        pos = Math.round(Math.random() * (arr.length - 1));
+        str += arr[pos];
+    }
+    return str;
+};
+//数组去重
+Array.prototype.unique = function() {
+    var res = [];
+    var json = {};
+    for (var i = 0; i < this.length; i++) {
+        if (!json[this[i]]) {
+            res.push(this[i]);
+            json[this[i]] = 1;
+        }
+    }
+    return res;
+};
+//去除数组中的空值  
+function trimSpace(array) {
+    for (var i = 0; i < array.length; i++) {
+        if (array[i] == "" || typeof(array[i]) == "undefined") {
+            array.splice(i, 1);
+            i = i - 1;
+        }
+    }
+    return array;
+};
+//日期范围限制
+var start = {
+    elem: '#start',
+    format: 'YYYY-MM-DD',
+    //min: laydate.now(), //设定最小日期为当前日期
+    max: '2099-06-16 23:59:59', //最大日期
+    istime: true,
+    istoday: false,
+    choose: function(datas) {
+        end.min = datas; //开始日选好后，重置结束日的最小日期
+        end.start = datas //将结束日的初始值设定为开始日
+    }
+};
+var end = {
+    elem: '#end',
+    format: 'YYYY-MM-DD',
+    //min: laydate.now(),
+    max: '2099-06-16 23:59:59',
+    istime: true,
+    istoday: false,
+    choose: function(datas) {
+        start.max = datas; //结束日选好后，重置开始日的最大日期
+    }
+};
+
+/*
+ **接口
+ */
+
+//登录
+var loginFun = function() {
+    $("#loginBtn").click(function() {
+        //验证代理商编号
+        var serviceNo;
+        if ($("#serviceNo").val() == "" || $("#serviceNo").val().length == "0") {
+            parent.layer.tips('请填写用户名', '#serviceNo');
+            return false;
+        } else {
+            serviceNo = $("#serviceNo").val();
+        };
+        //验证获取用户名
+        var userName;
+        if ($("#userName").val() == "" || $("#userName").val().length == "0") {
+            parent.layer.tips('请填写用户名', '#userName');
+            return false;
+        } else {
+            userName = $("#userName").val();
+        };
+        //验证获取密码
+        var passWord;
+        if ($("#passWord").val() == "" || $("#passWord").val().length == "0") {
+            parent.layer.tips('请填写用户名', '#passWord');
+            return false;
+        } else {
+            passWord = $("#passWord").val();
+        };
+        //MD5加密密码
+        var md5PassWord = md5(passWord);
+        //将用户名和加密后的密码转换为json字符串
+        var loginData = JSON.stringify({
+            "userAccount": userName,
+            "userPassword": md5PassWord,
+            "serviceNo": serviceNo
+        });
+        //将登录json数据转换为base64字符串
+        var ecodeValue = base64encode(utf16to8(loginData));
+        //发起登录请求
+        $.ajax({
+            url: ajaxUrl + '/sas/login/verification?ecode=' + ecodeValue,
+            type: 'post',
+            dataType: 'text',
+            contentType: 'application/text;charset=UTF-8',
+            beforeSend: function() {
+                $('#loginBtn').attr("disabled", true);
+                $('#loginBtn').text("登录中，请稍后");
+            },
+            success: function(data) {
+                var result = utf8to16(base64decode(data.replace(/\s/g, '')));
+                result = JSON.parse(result);
+                // console.log(result);
+                if (result.code == "success") {
+                    var userData = JSON.parse(result.date);
+                    // 判断用户是否绑定手机 userData[1] == undefined 结果为true 则用户未绑定手机
+                    if (userData[0].spMobile == undefined) {
+                        window.sessionStorage.userName = userData[0].userName;
+                        window.sessionStorage.userAccount = userData[0].userAccount;
+                        window.sessionStorage.serviceNo = userData[0].serviceNo;
+                        window.sessionStorage.balance = userData[0].balance;
+                        window.sessionStorage.spMobile = undefined;
+                        window.sessionStorage.bindPhone = false;
+                        window.location.href = "index.html";
+                    } else {
+                        window.sessionStorage.userName = userData[0].userName;
+                        window.sessionStorage.userAccount = userData[0].userAccount;
+                        window.sessionStorage.serviceNo = userData[0].serviceNo;
+                        window.sessionStorage.balance = userData[0].balance;
+                        window.sessionStorage.spMobile = userData[0].spMobile;
+                        window.location.href = "index.html";
+                    };
+                } else if (result.code == "false") {
+                    layer.alert(result.msg);
+                } else {
+                    layer.alert("服务器异常，请稍后重新登录");
+                }
+
+            },
+            complete: function() {
+                $('#loginBtn').removeAttr("disabled");
+                $('#loginBtn').text("登录");
+            },
+            error: function(err) {
+                layer.alert("服务器异常，请稍后重新登录");
+            }
+        });
+    });
+};
+//余额查询
+var getBalance = function(pages) {
+    $.ajax({
+        url: ajaxUrl + '/sas/query/getBalance',
+        type: 'post',
+        dataType: 'text',
+        contentType: 'application/text;charset=UTF-8',
+        success: function(data) {
+            var result = utf8to16(base64decode(data.replace(/\s/g, '')));
+            result = JSON.parse(result);
+            // console.log(result);
+            if (result.code == "200") {
+                window.sessionStorage.balance = result.data.leftFee;
+                if (pages == "index") {
+                    $("#userBalance").html(result.data.leftFee / 100 + " 元");
+                } else {
+                    var mybalance = window.parent.document.getElementById("userBalance");
+                    mybalance.innerHTML = result.data.leftFee / 100 + " 元";
+                };
+            } else {
+                if (pages == "index") {
+                    layer.alert("查询余额失败，请稍后重新查询");
+                } else {
+                    //。。。
+                };
+
+            };
+        },
+        error: function(err) {
+            if (pages == "index") {
+                layer.alert("查询余额失败，请稍后重新查询");
+            } else {
+                //。。。
+            };
+        }
+    });
+};
+//获取短信验证码 node--按钮元素 useToDo--获取短信的用途 如果是useToBind则为绑定电话 如果是useToPay则为支付
+var getCode = function(node, useToDo) {
+    node.click(function() {
+        if (useToDo == "useToBind") {
+            //验证手机号码
+            var regMobilezh = /^1(3|4|5|7|8)\d{9}$/;
+            var sendPhoneVal;
+            if ($("#bindPhoneTxt").val() == "" || $("#bindPhoneTxt").val().length == "0") {
+                layer.tips('手机号码不能为空！', '#bindPhoneTxt', {
+                    tips: [1, '#78BA32']
+                });
+                return false;
+            };
+            if (!regMobilezh.test($("#bindPhoneTxt").val())) {
+                layer.tips('手机号码格式错误！', '#bindPhoneTxt', {
+                    tips: [1, '#78BA32']
+                });
+                return false;
+            };
+            var sendPhoneVal = $("#bindPhoneTxt").val();
+        } else {
+            var sendPhoneVal = $(".getcodephone").text();
+        };
+
+        //存储参数串
+        var data = JSON.stringify({
+            'userAccount': window.sessionStorage.userAccount,
+            'phone': sendPhoneVal,
+            "serviceNo": window.sessionStorage.serviceNo
+        });
+        //对参数串进行base64加密
+        var dataValue = base64encode(utf16to8(data));
+        //发起获取验证码请求
+        $.ajax({
+            url: ajaxUrl + '/sas/phone/sendMessage?ecode=' + dataValue,
+            type: 'post',
+            dataType: 'text',
+            contentType: 'application/text;charset=UTF-8',
+            success: function(data) {
+                var result = utf8to16(base64decode(data.replace(/\s/g, '')));
+                result = JSON.parse(result);
+                // console.log(result);
+                if (result.msg == "success") {
+                    layer.msg("验证码已发送，请注意查收", { icon: 1 });
+                    var setTime;
+                    var time = 60;
+                    setTime = setInterval(function() {
+                        if (time <= 0) {
+                            clearInterval(setTime);
+                            node.attr("disabled", false);
+                            node.val("获取验证码");
+                            return;
+                        }
+                        time--;
+                        node.val(time + "s后重新获取");
+                        node.attr("disabled", true);
+                    }, 1000);
+                } else {
+                    layer.msg("验证码发送失败，请重新获取");
+                };
+            },
+            error: function(err) {
+                layer.msg("验证码发送失败，请重新获取");
+            }
+        });
+    });
+};
+//绑定手机
+var bindPhoneFun = function() {
+    $("#btnSave").click(function() {
+        //验证手机号码
+        var regMobilezh = /^1(3|4|5|7|8)\d{9}$/;
+        var bindPhoneVal;
+        if ($("#bindPhoneTxt").val() == "" || $("#bindPhoneTxt").val().length == "0") {
+            layer.tips('手机号码不能为空！', '#bindPhoneTxt', {
+                tips: [1, '#78BA32']
+            });
+            return false;
+        };
+        if (!regMobilezh.test($("#bindPhoneTxt").val())) {
+            layer.tips('手机号码格式错误！', '#bindPhoneTxt', {
+                tips: [1, '#78BA32']
+            });
+            return false;
+        };
+
+        bindPhoneVal = $("#bindPhoneTxt").val();
+
+        //验证短信验证码
+        var regNumber = /^\d{6}$/;
+        var duanxinCodeVal;
+        if ($("#duanxinCodeNum").val() == "" || $("#duanxinCodeNum").val().length == "0") {
+            layer.tips('短信验证码不能为空！', '#duanxinCodeNum', {
+                tips: [1, '#78BA32']
+            });
+            return false;
+        };
+        if (!regNumber.test($("#duanxinCodeNum").val())) {
+            layer.tips('验证码格式错误！', '#duanxinCodeNum', {
+                tips: [1, '#78BA32']
+            });
+            return false;
+        };
+        duanxinCodeVal = $("#duanxinCodeNum").val();
+
+        //存储参数串
+        var data = JSON.stringify({
+            'userAccount': window.sessionStorage.userAccount,
+            'code': duanxinCodeVal,
+            'phone': bindPhoneVal,
+            "serviceNo": window.sessionStorage.serviceNo
+        });
+        //对参数串进行base64加密
+        var dataValue = base64encode(utf16to8(data));
+        //发起绑定用户电话请求
+        $.ajax({
+            url: ajaxUrl + '/sas/phone/bangding?ecode=' + dataValue,
+            type: 'post',
+            dataType: 'text',
+            contentType: 'application/text;charset=UTF-8',
+            beforeSend: function() {
+                $('#btnSave').attr("disabled", true);
+                $('#btnSave').text("绑定中");
+            },
+            success: function(data) {
+                var result = utf8to16(base64decode(data.replace(/\s/g, '')));
+                result = JSON.parse(result);
+                // console.log(result);
+                if (result.msg == "success") {
+                    parent.layer.msg('绑定成功', { icon: 1 });
+                    window.sessionStorage.spMobile = bindPhoneVal;
+                    window.sessionStorage.bindPhone = true;
+                    $('#myModal').modal("hide");
+                } else {
+                    parent.layer.msg('绑定失败', { icon: 2 });
+                    //清空短信验证码输入框
+                    $("#duanxinCodeNum").val("");
+                }
+            },
+            complete: function() {
+                $('#btnSave').removeAttr("disabled");
+                $('#btnSave').text("绑定");
+            },
+            error: function(err) {
+                parent.layer.msg('绑定失败');
+            }
+        });
+        //清空短信验证码输入框
+        $("#duanxinCodeNum").val("");
+    });
+};
 //获取全部产品类型并写入对应选项
 var setProducts = function() {
     var yiDong = [],
@@ -558,58 +708,6 @@ var setProducts = function() {
         }
     });
 };
-//获取短信验证码 -- 充值页面
-var getCodeFlow = function() {
-    $("#getrandomcode").click(function() {
-        var sendPhoneVal = $(".getcodephone").text();
-        //存储参数串
-        var data = JSON.stringify({
-            'userAccount': window.sessionStorage.userAccount,
-            'phone': sendPhoneVal
-        });
-
-        //对参数串进行base64加密
-        var dataValue = base64encode(utf16to8(data));
-
-        //发起获取验证码请求
-        $.ajax({
-            url: ajaxUrl + '/sas/phone/sendMessage?ecode=' + dataValue,
-            type: 'post',
-            dataType: 'text',
-            contentType: 'application/text;charset=UTF-8',
-            success: function(data) {
-                // 将返回值处理后进行base64解码并格式化为json格式
-                var result = utf8to16(base64decode(data.replace(/\s/g, '')));
-                result = JSON.parse(result);
-                // console.log(result);
-                // 如果返回值信息为成功 提示发送消息并禁用获取按钮开始倒计时
-                if (result.msg == "success") {
-
-                    layer.msg("验证码已发送，请注意查收", { icon: 1 });
-
-                    var setTime;
-                    var time = 60;
-                    setTime = setInterval(function() {
-                        if (time <= 0) {
-                            clearInterval(setTime);
-                            $("#getrandomcode").attr("disabled", false);
-                            $("#getrandomcode").val("获取验证码");
-                            return;
-                        }
-                        time--;
-                        $("#getrandomcode").val(time + "s后重新获取");
-                        $("#getrandomcode").attr("disabled", true);
-                    }, 1000);
-                } else {
-                    layer.msg("验证码发送失败，请重新获取");
-                };
-            },
-            error: function(err) {
-                layer.msg("验证码发送失败，请重新获取");
-            }
-        });
-    });
-}
 //充值
 var flowPay = function() {
     var phoneNum;
@@ -683,6 +781,7 @@ var flowPay = function() {
         //声明随机串用于识别订单批次 格式为yyyymmddhhmmss+6位数字字母组合随机数
         var nowTime = new Date();
         var orderCode = format(nowTime, "yyyyMMddHHmmss") + '' + randomWord(false, 6);
+        $('#checkDuanxinCode').attr("disabled", true);
         for (var i = 0; i < phoneArrLen; i++) {
             var phone = trimSpacePhoneArr[i];
             if (phone.length !== 0) {
@@ -694,7 +793,8 @@ var flowPay = function() {
                     'productNo': productNo,
                     'userAccount': window.sessionStorage.userAccount,
                     'codes': duanxinCodeVal,
-                    'carrier': window.sessionStorage.spMobile
+                    'carrier': window.sessionStorage.spMobile,
+                    "serviceNo": window.sessionStorage.serviceNo
                 });
                 var dataValue = base64encode(utf16to8(data));
                 //发起充值请求
@@ -717,6 +817,7 @@ var flowPay = function() {
                 });
             };
         };
+        $('#checkDuanxinCode').removeAttr("disabled");
         //充值后的提示信息
         // console.log(flowPayResult);
         var flowPayResFlag;
@@ -743,75 +844,6 @@ var flowPay = function() {
         var pages = "flowPayPages";
         getBalance(pages);
     });
-};
-//格式化日期
-var format = function(time, format) {
-    var t = new Date(time);
-    var tf = function(i) { return (i < 10 ? '0' : '') + i };
-    return format.replace(/yyyy|MM|dd|HH|mm|ss/g, function(a) {
-        switch (a) {
-            case 'yyyy':
-                return tf(t.getFullYear());
-                break;
-            case 'MM':
-                return tf(t.getMonth() + 1);
-                break;
-            case 'mm':
-                return tf(t.getMinutes());
-                break;
-            case 'dd':
-                return tf(t.getDate());
-                break;
-            case 'HH':
-                return tf(t.getHours());
-                break;
-            case 'ss':
-                return tf(t.getSeconds());
-                break;
-        }
-    })
-};
-//生成6位随机字符串
-/*
- ** randomWord 产生任意长度随机字母数字组合
- ** randomFlag-是否任意长度 min-任意长度最小位[固定位数] max-任意长度最大位
- */
-function randomWord(randomFlag, min, max) {
-    var str = "",
-        range = min,
-        arr = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'];
-
-    // 随机产生
-    if (randomFlag) {
-        range = Math.round(Math.random() * (max - min)) + min;
-    }
-    for (var i = 0; i < range; i++) {
-        pos = Math.round(Math.random() * (arr.length - 1));
-        str += arr[pos];
-    }
-    return str;
-};
-//数组去重
-Array.prototype.unique = function() {
-    var res = [];
-    var json = {};
-    for (var i = 0; i < this.length; i++) {
-        if (!json[this[i]]) {
-            res.push(this[i]);
-            json[this[i]] = 1;
-        }
-    }
-    return res;
-};
-//去除数组中的空值  
-function trimSpace(array) {
-    for (var i = 0; i < array.length; i++) {
-        if (array[i] == "" || typeof(array[i]) == "undefined") {
-            array.splice(i, 1);
-            i = i - 1;
-        }
-    }
-    return array;
 };
 //订单查询
 var queryOrder = function() {
@@ -876,6 +908,10 @@ var queryOrder = function() {
         type: 'post',
         dataType: 'text',
         contentType: 'application/text;charset=UTF-8',
+        beforeSend: function() {
+            $('#orderQueryBtn').attr("disabled", true);
+            // $('#orderQueryBtn').text("查询中");
+        },
         success: function(data) {
             var result = utf8to16(base64decode(data.replace(/\s/g, '')));
             result = JSON.parse(result);
@@ -926,32 +962,12 @@ var queryOrder = function() {
             $("#queryTable th").css("width", "20%");
             $("#queryTable td").css("width", "20%");
         },
+        complete: function() {
+            $('#orderQueryBtn').removeAttr("disabled");
+            // $('#orderQueryBtn').text("订单查询");
+        },
         error: function(err) {
             layer.msg("查询失败");
         }
     });
-};
-//日期范围限制
-var start = {
-    elem: '#start',
-    format: 'YYYY-MM-DD',
-    //min: laydate.now(), //设定最小日期为当前日期
-    max: '2099-06-16 23:59:59', //最大日期
-    istime: true,
-    istoday: false,
-    choose: function(datas) {
-        end.min = datas; //开始日选好后，重置结束日的最小日期
-        end.start = datas //将结束日的初始值设定为开始日
-    }
-};
-var end = {
-    elem: '#end',
-    format: 'YYYY-MM-DD',
-    //min: laydate.now(),
-    max: '2099-06-16 23:59:59',
-    istime: true,
-    istoday: false,
-    choose: function(datas) {
-        start.max = datas; //结束日选好后，重置开始日的最大日期
-    }
 };
