@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!--360浏览器优先以webkit内核解析-->
+    <title></title>
+    <link rel="shortcut icon" href="favicon.ico">
+    <link href="css/bootstrap.min.css?v=3.3.6" rel="stylesheet">
+    <link href="css/font-awesome.css?v=4.4.0" rel="stylesheet">
+    <link href="css/animate.css" rel="stylesheet">
+    <link href="css/style.css?v=4.1.0" rel="stylesheet">
+    <link href="css/main.css" rel="stylesheet">
+</head>
+
+<body class="gray-bg">
+    <div class="row wrapper border-bottom white-bg page-heading">
+        <div class="col-sm-4">
+            <h2>修改安全手机号</h2>
+        </div>
+    </div>
+    <div class="wrapper wrapper-content">
+        <div id="box" class="box viewport-flip" title="点击翻面">
+            <div class="list flip">
+                <div class="row">
+                    <div class="col-sm-12">
+                        <h4 class="col-sm-4" style="padding: 20px;">手机号码</h4>
+                        <span class="getcodephone2 col-sm-8"></span>
+                    </div>
+                </div>
+                
+                <div style="display:inline-block;">
+                    <input style="width:58%;float:left;" class="form-control" id="randomcode" placeholder="6位动态验证码" type="text" />
+                    <input style="width:41%;float:right;" class="btn btn-primary" id="getrandomcode" type="button" value="获取验证码" />
+                </div>
+                <p style="padding-top: 10px;">请输入您手机收到的短信验证码后进行查询。</p>
+            </div>
+            <div class="list flip out">
+                另一面
+                <br>
+                ddddd
+            </div>
+        </div>
+    </div>
+    <!-- 全局js -->
+    <script src="js/jquery.min.js?v=2.1.4"></script>
+    <script src="js/bootstrap.min.js?v=3.3.6"></script>
+    <script src="js/plugins/layer/layer.min.js"></script>
+    <script src="js/Base64.js"></script>
+    <!-- 自定义js -->
+    <script src="js/content.js?v=1.0.0"></script>
+    <!-- layerDate plugin javascript -->
+    <!-- <script src="js/plugins/layer/laydate/laydate.js"></script> -->
+    <script src="js/main.js"></script>
+    <script>
+    // 在前面显示的元素，隐藏在后面的元素
+    var eleBack = null,
+        eleFront = null,
+        // 纸牌元素们 
+        eleList = $(".list");
+
+    // 确定前面与后面元素
+    var funBackOrFront = function() {
+        eleList.each(function() {
+            if ($(this).hasClass("out")) {
+                eleBack = $(this);
+            } else {
+                eleFront = $(this);
+            }
+        });
+    };
+    funBackOrFront();
+
+    $("#box").bind("click", function() {
+        // 切换的顺序如下
+        // 1. 当前在前显示的元素翻转90度隐藏, 动画时间225毫秒
+        // 2. 结束后，之前显示在后面的元素逆向90度翻转显示在前
+        // 3. 完成翻面效果
+        eleFront.addClass("out").removeClass("in");
+        setTimeout(function() {
+            eleBack.addClass("in").removeClass("out");
+            // 重新确定正反元素
+            funBackOrFront();
+        }, 225);
+        return false;
+    });
+    </script>
+</body>
+
+</html>

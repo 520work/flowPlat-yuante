@@ -365,7 +365,7 @@ var loginFun = function() {
         //验证代理商编号
         var serviceNo;
         if ($("#serviceNo").val() == "" || $("#serviceNo").val().length == "0") {
-            parent.layer.tips('请填写用户名', '#serviceNo');
+            parent.layer.tips('请填写代理商编号', '#serviceNo');
             return false;
         } else {
             serviceNo = $("#serviceNo").val();
@@ -381,7 +381,7 @@ var loginFun = function() {
         //验证获取密码
         var passWord;
         if ($("#passWord").val() == "" || $("#passWord").val().length == "0") {
-            parent.layer.tips('请填写用户名', '#passWord');
+            parent.layer.tips('请填写密码', '#passWord');
             return false;
         } else {
             passWord = $("#passWord").val();
