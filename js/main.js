@@ -89,6 +89,10 @@ $(document).ready(function() {
             queryOrder();
         });
     };
+    //修改绑定手机页面
+    if ($(".changebox").height() != null) {
+        init_changeBindPhone();
+    };
 });
 
 /*
@@ -354,6 +358,21 @@ var end = {
         start.max = datas; //结束日选好后，重置开始日的最大日期
     }
 };
+//初始化修改密码
+var init_changeBindPhone = function() {
+    //正反面切换显示
+    // $(".faceside").click(function() {
+    //     $(".changebox").css("transform", "rotateY(180deg)");
+    // });
+    // $(".backside").click(function() {
+    //     $(".changebox").css("transform", "rotateY(360deg)");
+    // });
+    //点击获取验证码按钮
+    var node = $("#getrandomcode2");
+    var useToDo = "useToPay";
+    getCode(node, useToChange);
+    
+};
 
 /*
  **接口
@@ -483,7 +502,7 @@ var getBalance = function(pages) {
         }
     });
 };
-//获取短信验证码 node--按钮元素 useToDo--获取短信的用途 如果是useToBind则为绑定电话 如果是useToPay则为支付
+//获取短信验证码 node--按钮元素 useToDo--获取短信的用途 如果是useToBind则为绑定电话 如果是useToPay则为支付或者修改绑定电话
 var getCode = function(node, useToDo) {
     node.click(function() {
         if (useToDo == "useToBind") {
@@ -504,7 +523,7 @@ var getCode = function(node, useToDo) {
             };
             var sendPhoneVal = $("#bindPhoneTxt").val();
         } else {
-            var sendPhoneVal = $(".getcodephone").text();
+            var sendPhoneVal = window.sessionStorage.spMobile;
         };
 
         //存储参数串

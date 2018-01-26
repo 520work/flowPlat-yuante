@@ -28,6 +28,7 @@
 }
 
 
+
 /*icon font end*/
 
 
@@ -48,6 +49,7 @@
 .logo img {
     width: 80%;
 }
+
 
 
 /*index.html stylesheet end*/
@@ -82,6 +84,7 @@
 }
 
 
+
 /*flowRecharge.html end*/
 
 
@@ -90,6 +93,7 @@
 .loginwrap .logo-name {
     margin-bottom: 20px;
 }
+
 
 
 /*login.html end*/
@@ -112,104 +116,53 @@
 }
 
 
+
 /*queryFlow.html end*/
 
 
 /*changeBindPhone.html begin*/
 
-/* .viewport-flip {
-    -webkit-perspective: 1000;
-    perspective: 1000;
-    position: absolute;
-} */
-
-.in {
-    -webkit-animation-timing-function: ease-out;
-    -webkit-animation-duration: 350ms;
-    animation-timing-function: ease-out;
-    animation-duration: 350ms;
+.changebox{
+    margin: 0 auto;
 }
 
-.out {
-    -webkit-animation-timing-function: ease-in;
-    -webkit-animation-duration: 225ms;
-    animation-timing-function: ease-in;
-    animation-duration: 225ms;
-}
-
-.flip {
-    -webkit-backface-visibility: hidden;
-    -webkit-transform: translateX(0);
-    /* Needed to work around an iOS 3.1 bug that causes listview thumbs to disappear when -webkit-visibility:hidden is used. */
-    backface-visibility: hidden;
-    transform: translateX(0);
-}
-
-.flip.out {
-    -webkit-transform: rotateY(-90deg) scale(.9);
-    -webkit-animation-name: flipouttoleft;
-    -webkit-animation-duration: 175ms;
-    transform: rotateY(-90deg) scale(.9);
-    animation-name: flipouttoleft;
-    animation-duration: 175ms;
-}
-
-.flip.in {
-    -webkit-animation-name: flipintoright;
-    -webkit-animation-duration: 225ms;
-    animation-name: flipintoright;
-    animation-duration: 225ms;
-}
-
-@-webkit-keyframes flipintoright {
-    from {
-        -webkit-transform: rotateY(90deg) scale(.9);
-    }
-    to {
-        -webkit-transform: rotateY(0);
-    }
-}
-
-@keyframes flipintoright {
-    from {
-        transform: rotateY(90deg) scale(.9);
-    }
-    to {
-        transform: rotateY(0);
-    }
-}
-
-@-webkit-keyframes flipouttoleft {
-    from {
-        -webkit-transform: rotateY(0);
-    }
-    to {
-        -webkit-transform: rotateY(-90deg) scale(.9);
-    }
-}
-
-@keyframes flipouttoleft {
-    from {
-        transform: rotateY(0);
-    }
-    to {
-        transform: rotateY(-90deg) scale(.9);
-    }
-}
-
-.box {
-    width: 355px;
-    height: 500px;
-    padding-top: 30px;
-    padding-bottom: 30px;
-    margin-left: auto;
-    margin-right: auto;
-    position: relative;
-}
-
-.list {
-    position: absolute;
+.changebox,
+.backside,
+.faceside {
+    width: 600px;
+    height: 400px;
+    box-sizing: border-box;
     background-color: #fff;
+    padding: 60px;
+}
+
+.changebox {
+    position: relative;
+    transition: 1s;
+    transform-style: preserve-3d;
+}
+
+.backside {
+    position: absolute;
+    top: 0;
+    left: 0;
+    transform: rotateY(180deg);
+    backface-visibility: hidden;
+}
+
+.faceside {
+    position: absolute;
+    top: 0;
+    left: 0;
+    backface-visibility: hidden;
+}
+
+.backside h3, .faceside h3{
+    margin-bottom: 30px;
+}
+
+.backside .btn, .faceside .btn{
+    margin-right: 10px;
 }
 
 
