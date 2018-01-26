@@ -647,12 +647,12 @@ var bindPhoneFun = function() {
                 result = JSON.parse(result);
                 // console.log(result);
                 if (result.msg == "success") {
-                    parent.layer.msg('绑定成功', { icon: 1 });
+                    layer.msg('绑定成功', { icon: 1 });
                     window.sessionStorage.spMobile = bindPhoneVal;
                     window.sessionStorage.bindPhone = true;
                     $('#myModal').modal("hide");
                 } else {
-                    parent.layer.msg('绑定失败', { icon: 2 });
+                    layer.msg('绑定失败', { icon: 2 });
                     //清空短信验证码输入框
                     $("#duanxinCodeNum").val("");
                 }
@@ -662,7 +662,7 @@ var bindPhoneFun = function() {
                 $('#btnSave').text("绑定");
             },
             error: function(err) {
-                parent.layer.msg('绑定失败');
+                layer.msg('绑定失败');
             }
         });
         //清空短信验证码输入框
@@ -1043,7 +1043,6 @@ var init_changeBindPhone = function() {
         });
         //对参数串进行base64加密
         var dataValue = base64encode(utf16to8(data));
-        //发起绑定用户电话请求
         $.ajax({
             url: ajaxUrl + '/sas/replacePhone/cheakPhone?ecode=' + dataValue,
             type: 'post',
@@ -1059,12 +1058,12 @@ var init_changeBindPhone = function() {
                     $(".changebox").css("transform", "rotateY(180deg)");
                     $("#duanxinCodeNum1").val("");
                 } else {
-                    parent.layer.msg('验证失败', { icon: 2 });
+                    layer.msg(result.msg, { icon: 2 });
                     $("#duanxinCodeNum1").val("");
                 }
             },
             error: function(err) {
-                parent.layer.msg('验证失败');
+                layer.msg('验证失败');
                 $("#duanxinCodeNum1").val("");
             }
         });
@@ -1144,14 +1143,14 @@ var init_changeBindPhone = function() {
                 result = JSON.parse(result);
                 // console.log(result);
                 if (result.msg == "success") {
-                    parent.layer.msg('绑定成功', { icon: 1 });
+                    layer.msg('绑定成功', { icon: 1 });
                     window.sessionStorage.spMobile = bindPhoneVal;
                     $(".backside").animate({ "opacity": "0" }, 1000);
                     $(".faceside").animate({ "opacity": "1" }, 1000);
                     $(".changebox").css("transform", "rotateY(360deg)");
                     clearInputVal();
                 } else {
-                    parent.layer.msg('绑定失败', { icon: 2 });
+                    layer.msg('绑定失败', { icon: 2 });
                     clearInputVal();
                 }
             },
@@ -1160,7 +1159,7 @@ var init_changeBindPhone = function() {
                 $('#changeToBind').text("绑定手机号");
             },
             error: function(err) {
-                parent.layer.msg('绑定失败');
+                layer.msg('绑定失败');
                 clearInputVal();
             }
         });
