@@ -94,11 +94,6 @@ $(document).ready(function() {
         init_changeBindPhone();
     };
 });
-
-/*
- **功能函数
- */
-
 //防止页面后退
 var stopBackFun = function() {
     history.pushState(null, null, document.URL);
@@ -358,26 +353,6 @@ var end = {
         start.max = datas; //结束日选好后，重置开始日的最大日期
     }
 };
-//初始化修改密码
-var init_changeBindPhone = function() {
-    //正反面切换显示
-    // $(".faceside").click(function() {
-    //     $(".changebox").css("transform", "rotateY(180deg)");
-    // });
-    // $(".backside").click(function() {
-    //     $(".changebox").css("transform", "rotateY(360deg)");
-    // });
-    //点击获取验证码按钮
-    var node = $("#getrandomcode2");
-    var useToDo = "useToPay";
-    getCode(node, useToChange);
-    
-};
-
-/*
- **接口
- */
-
 //登录
 var loginFun = function() {
     $("#loginBtn").click(function() {
@@ -502,8 +477,8 @@ var getBalance = function(pages) {
         }
     });
 };
-//获取短信验证码 node--按钮元素 useToDo--获取短信的用途 如果是useToBind则为绑定电话 如果是useToPay则为支付或者修改绑定电话
-var getCode = function(node, useToDo) {
+//获取短信验证码 node--按钮元素 useToDo--获取短信的用途 如果是useToBind则为绑定电话 如果是useToPay则为支付或者验证默认绑定电话 domType--倒计时显示元素类型
+var getCode = function(node, useToDo, domType) {
     node.click(function() {
         if (useToDo == "useToBind") {
             //验证手机号码
@@ -523,7 +498,38 @@ var getCode = function(node, useToDo) {
             };
             var sendPhoneVal = $("#bindPhoneTxt").val();
         } else {
-            var sendPhoneVal = window.sessionStorage.spMobile;
+            if (domType == "aDom") {
+                //验证手机号码
+                var regMobilezh = /^1(3|4|5|7|8)\d{9}$/;
+                var bindPhoneVal;
+                if ($("#newPhoneVal").val() == "" || $("#newPhoneVal").val().length == "0") {
+                    layer.tips('手机号码不能为空！', '#newPhoneVal', {
+                        tips: [1, '#78BA32']
+                    });
+                    return false;
+                };
+                if (!regMobilezh.test($("#newPhoneVal").val())) {
+                    layer.tips('手机号码格式错误！', '#newPhoneVal', {
+                        tips: [1, '#78BA32']
+                    });
+                    return false;
+                };
+                if ($("#newPhoneAgain").val() == "" || $("#newPhoneAgain").val().length == "0") {
+                    layer.tips('手机号码不能为空！', '#newPhoneAgain', {
+                        tips: [1, '#78BA32']
+                    });
+                    return false;
+                };
+                if ($("#newPhoneVal").val() != $("#newPhoneAgain").val()) {
+                    layer.tips('两次输入的电话号码不一致！', '#newPhoneAgain', {
+                        tips: [1, '#78BA32']
+                    });
+                    return false;
+                };
+                sendPhoneVal = $("#newPhoneVal").val();
+            } else {
+                var sendPhoneVal = window.sessionStorage.spMobile;
+            };
         };
 
         //存储参数串
@@ -551,13 +557,23 @@ var getCode = function(node, useToDo) {
                     setTime = setInterval(function() {
                         if (time <= 0) {
                             clearInterval(setTime);
-                            node.attr("disabled", false);
-                            node.val("获取验证码");
+                            if (domType == "aDom") {
+                                node.css("display", "block");
+                                $("#randomSec").text("");
+                            } else {
+                                node.attr("disabled", false);
+                                node.val("获取验证码");
+                            };
                             return;
                         }
                         time--;
-                        node.val(time + "s后重新获取");
-                        node.attr("disabled", true);
+                        if (domType == "aDom") {
+                            $("#randomSec").text(time + "s后可重新获取随机密码");
+                            node.css("display", "none");
+                        } else {
+                            node.val(time + "s后重新获取");
+                            node.attr("disabled", true);
+                        }
                     }, 1000);
                 } else {
                     layer.msg("验证码发送失败，请重新获取");
@@ -989,4 +1005,176 @@ var queryOrder = function() {
             layer.msg("查询失败");
         }
     });
+};
+//初始化修改密码
+var init_changeBindPhone = function() {
+    //默认显示当前绑定的手机号码
+    $("#defaultPhone").html(window.sessionStorage.spMobile);
+
+    //点击获取验证码按钮
+    var node = $("#getrandomcode2");
+    var useToDo = "useToPay";
+    getCode(node, useToDo);
+
+    //验证用户原绑定手机号码
+    $("#checkOldPhone").click(function() {
+        //验证短信验证码
+        var regNumber = /^\d{6}$/;
+        var duanxinCodeVal;
+        if ($("#duanxinCodeNum1").val() == "" || $("#duanxinCodeNum1").val().length == "0") {
+            layer.tips('短信验证码不能为空！', '#duanxinCodeNum1', {
+                tips: [1, '#78BA32']
+            });
+            return false;
+        };
+        if (!regNumber.test($("#duanxinCodeNum1").val())) {
+            layer.tips('验证码格式错误！', '#duanxinCodeNum1', {
+                tips: [1, '#78BA32']
+            });
+            return false;
+        };
+        duanxinCodeVal = $("#duanxinCodeNum1").val();
+        //存储参数串
+        var data = JSON.stringify({
+            'userAccount': window.sessionStorage.userAccount,
+            'code': duanxinCodeVal,
+            'phone': window.sessionStorage.spMobile,
+            "serviceNo": window.sessionStorage.serviceNo
+        });
+        //对参数串进行base64加密
+        var dataValue = base64encode(utf16to8(data));
+        //发起绑定用户电话请求
+        $.ajax({
+            url: ajaxUrl + '/sas/replacePhone/cheakPhone?ecode=' + dataValue,
+            type: 'post',
+            dataType: 'text',
+            contentType: 'application/text;charset=UTF-8',
+            success: function(data) {
+                var result = utf8to16(base64decode(data.replace(/\s/g, '')));
+                result = JSON.parse(result);
+                // console.log(result);
+                if (result.msg == "success") {
+                    $(".faceside").animate({ "opacity": "0" }, 1000);
+                    $(".backside").animate({ "opacity": "1" }, 1000);
+                    $(".changebox").css("transform", "rotateY(180deg)");
+                    $("#duanxinCodeNum1").val("");
+                } else {
+                    parent.layer.msg('验证失败', { icon: 2 });
+                    $("#duanxinCodeNum1").val("");
+                }
+            },
+            error: function(err) {
+                parent.layer.msg('验证失败');
+                $("#duanxinCodeNum1").val("");
+            }
+        });
+    });
+    //重新绑定手机时 获取验证码
+    var node = $("#getrandomcode3");
+    var useToDo = "useToPay";
+    var domType = "aDom";
+    getCode(node, useToDo, domType);
+    //点击绑定手机号按钮
+    $("#changeToBind").click(function() {
+        //验证手机号码
+        var regMobilezh = /^1(3|4|5|7|8)\d{9}$/;
+        var bindPhoneVal;
+        if ($("#newPhoneVal").val() == "" || $("#newPhoneVal").val().length == "0") {
+            layer.tips('手机号码不能为空！', '#newPhoneVal', {
+                tips: [1, '#78BA32']
+            });
+            return false;
+        };
+        if (!regMobilezh.test($("#newPhoneVal").val())) {
+            layer.tips('手机号码格式错误！', '#newPhoneVal', {
+                tips: [1, '#78BA32']
+            });
+            return false;
+        };
+        if ($("#newPhoneAgain").val() == "" || $("#newPhoneAgain").val().length == "0") {
+            layer.tips('手机号码不能为空！', '#newPhoneAgain', {
+                tips: [1, '#78BA32']
+            });
+            return false;
+        };
+        if ($("#newPhoneVal").val() != $("#newPhoneAgain").val()) {
+            layer.tips('两次输入的电话号码不一致！', '#newPhoneAgain', {
+                tips: [1, '#78BA32']
+            });
+            return false;
+        };
+        bindPhoneVal = $("#newPhoneVal").val();
+        //验证短信验证码
+        var regNumber = /^\d{6}$/;
+        var duanxinCodeVal;
+        if ($("#duanxinCodeNum2").val() == "" || $("#duanxinCodeNum2").val().length == "0") {
+            layer.tips('短信验证码不能为空！', '#duanxinCodeNum2', {
+                tips: [1, '#78BA32']
+            });
+            return false;
+        };
+        if (!regNumber.test($("#duanxinCodeNum2").val())) {
+            layer.tips('验证码格式错误！', '#duanxinCodeNum2', {
+                tips: [1, '#78BA32']
+            });
+            return false;
+        };
+        duanxinCodeVal = $("#duanxinCodeNum2").val();
+        //存储参数串
+        var data = JSON.stringify({
+            'userAccount': window.sessionStorage.userAccount,
+            'code': duanxinCodeVal,
+            'phone': bindPhoneVal,
+            "serviceNo": window.sessionStorage.serviceNo
+        });
+        //对参数串进行base64加密
+        var dataValue = base64encode(utf16to8(data));
+        //发起绑定用户电话请求
+        $.ajax({
+            url: ajaxUrl + '/sas/phone/bangding?ecode=' + dataValue,
+            type: 'post',
+            dataType: 'text',
+            contentType: 'application/text;charset=UTF-8',
+            beforeSend: function() {
+                $('#changeToBind').attr("disabled", true);
+                $('#changeToBind').text("电话绑定中");
+            },
+            success: function(data) {
+                var result = utf8to16(base64decode(data.replace(/\s/g, '')));
+                result = JSON.parse(result);
+                // console.log(result);
+                if (result.msg == "success") {
+                    parent.layer.msg('绑定成功', { icon: 1 });
+                    window.sessionStorage.spMobile = bindPhoneVal;
+                    $(".backside").animate({ "opacity": "0" }, 1000);
+                    $(".faceside").animate({ "opacity": "1" }, 1000);
+                    $(".changebox").css("transform", "rotateY(360deg)");
+                    clearInputVal();
+                } else {
+                    parent.layer.msg('绑定失败', { icon: 2 });
+                    clearInputVal();
+                }
+            },
+            complete: function() {
+                $('#changeToBind').removeAttr("disabled");
+                $('#changeToBind').text("绑定手机号");
+            },
+            error: function(err) {
+                parent.layer.msg('绑定失败');
+                clearInputVal();
+            }
+        });
+    });
+    //点击取消绑定按钮
+    $("#delChanged").click(function() {
+        $(".backside").animate({ "opacity": "0" }, 1000);
+        $(".faceside").animate({ "opacity": "1" }, 1000);
+        $(".changebox").css("transform", "rotateY(360deg)");
+    });
+    //清空短信验证码输入框
+    function clearInputVal() {
+        $("#newPhoneVal").val("");
+        $("#newPhoneAgain").val("");
+        $("#duanxinCodeNum2").val("");
+    };
 };

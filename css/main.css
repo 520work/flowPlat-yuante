@@ -122,15 +122,21 @@
 
 /*changeBindPhone.html begin*/
 
+.changewrap{
+    background-color: #fff;
+    height: 100%;
+}
+
 .changebox{
-    margin: 0 auto;
+    margin: 20px auto;
+    /* padding: 60px; */
 }
 
 .changebox,
 .backside,
 .faceside {
     width: 600px;
-    height: 400px;
+    /* height: 460px; */
     box-sizing: border-box;
     background-color: #fff;
     padding: 60px;

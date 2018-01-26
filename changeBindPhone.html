@@ -20,34 +20,43 @@
             <h2>修改安全手机号</h2>
         </div>
     </div>
-    <div class="wrapper wrapper-content">
+    <div class="wrapper wrapper-content changewrap">
         <div class="changebox">
             <div class="backside list">
                 <h3>修改安全手机号码</h3>
                 <div class="form-group">
                     <label>新号码：</label>
-                    <input placeholder="请输入您需要重新绑定的手机号码" class="form-control">
+                    <input placeholder="请输入您需要重新绑定的手机号码" class="form-control" id="newPhoneVal" maxlength="11">
                 </div>
-                <div class="form-group" style="margin-bottom: 30px;">
+                <div class="form-group">
                     <label>确认号码：</label>
-                    <input placeholder="请再次输入您需要重新绑定的手机号码" class="form-control">
+                    <input placeholder="请再次输入您需要重新绑定的手机号码" class="form-control" id="newPhoneAgain" maxlength="11">
+                </div>
+                <div class="form-group">
+                    <label for="randomcode">验证码：</label>
+                    <input class="form-control" id="duanxinCodeNum2" maxlength="6" placeholder="填写动态验证码" type="text" />
+                    <div style="margin-top: 10px;">
+                        <a href="javascript:;" id="getrandomcode3">获取短信验证码</a>
+                        <span id="randomSec"></span>
+                    </div>
+                    <p style="padding-top: 10px;">请输入新号码收到的短信验证码后进行重新绑定。</p>
                 </div>
                 <div class="form-group" style="text-align: center;">
-                    <input class="btn btn-primary" id="" type="button" value="确 认" />
-                    <input class="btn btn-primary" id="" type="button" value="取 消" />
+                    <input class="btn btn-primary" id="changeToBind" type="button" value="绑 定" />
+                    <input class="btn btn-primary" id="delChanged" type="button" value="取 消" />
                 </div>
             </div>
             <div class="faceside list">
-                <h3>获取短信验证码</h3>
-                <p style="padding-top: 10px;">当前绑定手机：<span>15100000000</span></p>
-                <div class="form-group" style="margin-bottom: 30px;">
-                    <input class="form-control" id="randomcode" placeholder="填写动态验证码" type="text" />
+                <h3 style="padding-top: 10px;">当前绑定手机：<span id="defaultPhone"></span></h3>
+                <div class="form-group">
+                    <label for="randomcode">验证码：</label>
+                    <input class="form-control" id="duanxinCodeNum1" maxlength="6" placeholder="填写动态验证码" type="text" />
+                    <p style="padding-top: 10px;">请输入您手机收到的短信验证码后进行验证。</p>
                 </div>
                 <div class="form-group" style="text-align: center;">
-                    <input class="btn btn-primary" id="getrandomcode" type="button" value="获取验证码" />
-                    <input class="btn btn-primary" id="getrandomcode" type="button" value="提交验证码" />
+                    <input class="btn btn-primary" id="getrandomcode2" type="button" value="获取验证码" />
+                    <input class="btn btn-primary" id="checkOldPhone" type="button" value="验证" />
                 </div>
-                <p style="padding-top: 10px; text-align: center;">请输入您手机收到的短信验证码后进行验证。</p>          
             </div>
         </div>
     </div>
