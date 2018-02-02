@@ -62,6 +62,8 @@ $(document).ready(function() {
     };
     //充值页面
     if ($("#flowPay").height() != null) {
+        //获取短信倒计时按钮显示文字
+        czCountDown();
         //文件导入事件
         upFile();
         //检测手机号码数量和格式
@@ -75,7 +77,8 @@ $(document).ready(function() {
         //获取验证码
         var node = $("#getrandomcode");
         var useToDo = "useToPay";
-        getCode(node, useToDo);
+        var domType = "btnCz";
+        getCode(node, useToDo, domType);
         //充值
         flowPay();
     };
@@ -91,6 +94,11 @@ $(document).ready(function() {
     };
     //修改绑定手机页面
     if ($(".changebox").height() != null) {
+        //验证原绑定电话 获取短信按钮倒计时
+        bindOldCountDown();
+        //验证新绑定电话 获取短信文本倒计时
+        bindNewCountDown();
+        //修改绑定电话逻辑
         init_changeBindPhone();
     };
 });
@@ -353,6 +361,73 @@ var end = {
         start.max = datas; //结束日选好后，重置开始日的最大日期
     }
 };
+//定时器
+var timer1, timer2, timer3;
+//充值--获取短信按钮倒计时函数
+var czCountDown = function() {
+    if (window.sessionStorage.time1 !== undefined && window.sessionStorage.time1 != "undefined") {
+        $("#getrandomcode").attr("disabled", true);
+        var maxtime = window.sessionStorage.time1;
+        $("#getrandomcode").val(maxtime + "s后重新获取");
+        timer1 = setInterval(function() {
+            if (maxtime >= 0) {
+                seconds = maxtime;
+                $("#getrandomcode").val(seconds + "s后重新获取");
+                --maxtime;
+                window.sessionStorage.time1 = maxtime;
+            } else {
+                clearInterval(timer1);
+                window.sessionStorage.time1 = undefined;
+                $("#getrandomcode").attr("disabled", false);
+                $("#getrandomcode").val("获取验证码");
+            };
+        }, 1000);
+    };
+};
+//验证原绑定电话--获取短信按钮倒计时函数
+var bindOldCountDown = function() {
+    if (window.sessionStorage.time2 !== undefined && window.sessionStorage.time2 != "undefined") {
+        $("#getrandomcode2").attr("disabled", true);
+        var maxtime2 = window.sessionStorage.time2;
+        $("#getrandomcode2").val(maxtime2 + "s后重新获取");
+        timer2 = setInterval(function() {
+            if (maxtime2 >= 0) {
+                seconds2 = maxtime2;
+
+                $("#getrandomcode2").val(seconds2 + "s后重新获取");
+                --maxtime2;
+                window.sessionStorage.time2 = maxtime2;
+            } else {
+                clearInterval(timer2);
+                window.sessionStorage.time2 = undefined;
+                $("#getrandomcode2").attr("disabled", false);
+                $("#getrandomcode2").val("获取验证码");
+            };
+        }, 1000);
+    };
+};
+//验证新绑定电话--获取短信文本倒计时函数
+var bindNewCountDown = function() {
+    if (window.sessionStorage.time3 !== undefined && window.sessionStorage.time3 != "undefined") {
+        $("#getrandomcode3").css("display", "none");
+        var maxtime3 = window.sessionStorage.time3;
+        $("#randomSec").text(maxtime3 + "s后可重新获取随机密码");
+        timer3 = setInterval(function() {
+            if (maxtime3 >= 0) {
+                seconds3 = maxtime3;
+                $("#randomSec").text(maxtime3 + "s后可重新获取随机密码");
+                $("#getrandomcode3").css("display", "none");
+                --maxtime3;
+                window.sessionStorage.time3 = maxtime3;
+            } else {
+                clearInterval(timer3);
+                window.sessionStorage.time3 = undefined;
+                $("#getrandomcode3").css("display", "block");
+                $("#randomSec").text("");
+            };
+        }, 1000);
+    };
+};
 //登录
 var loginFun = function() {
     $("#loginBtn").click(function() {
@@ -531,7 +606,6 @@ var getCode = function(node, useToDo, domType) {
                 var sendPhoneVal = window.sessionStorage.spMobile;
             };
         };
-
         //存储参数串
         var data = JSON.stringify({
             'userAccount': window.sessionStorage.userAccount,
@@ -552,29 +626,55 @@ var getCode = function(node, useToDo, domType) {
                 // console.log(result);
                 if (result.msg == "success") {
                     layer.msg("验证码已发送，请注意查收", { icon: 1 });
-                    var setTime;
-                    var time = 60;
-                    setTime = setInterval(function() {
-                        if (time <= 0) {
-                            clearInterval(setTime);
-                            if (domType == "aDom") {
-                                node.css("display", "block");
-                                $("#randomSec").text("");
+                    if (domType == "aDom") {
+                        var maxtime3 = "60";
+                        timer3 = setInterval(function() {
+                            if (maxtime3 >= 0) {
+                                seconds3 = maxtime3;
+                                $("#randomSec").text(maxtime3 + "s后可重新获取随机密码");
+                                $("#getrandomcode3").css("display", "none");
+                                --maxtime3;
+                                window.sessionStorage.time3 = maxtime3;
                             } else {
-                                node.attr("disabled", false);
-                                node.val("获取验证码");
+                                clearInterval(timer3);
+                                window.sessionStorage.time3 = undefined;
+                                $("#getrandomcode3").css("display", "block");
+                                $("#randomSec").text("");
                             };
-                            return;
-                        }
-                        time--;
-                        if (domType == "aDom") {
-                            $("#randomSec").text(time + "s后可重新获取随机密码");
-                            node.css("display", "none");
-                        } else {
-                            node.val(time + "s后重新获取");
-                            node.attr("disabled", true);
-                        }
-                    }, 1000);
+                        }, 1000);
+                    } else if (domType == "btnCz") {
+                        var maxtime = "60";
+                        timer1 = setInterval(function() {
+                            if (maxtime >= 0) {
+                                seconds = maxtime;
+                                $("#getrandomcode").val(seconds + "s后重新获取");
+                                $("#getrandomcode").attr("disabled", true);
+                                --maxtime;
+                                window.sessionStorage.time1 = maxtime;
+                            } else {
+                                clearInterval(timer1);
+                                window.sessionStorage.time1 = undefined;
+                                $("#getrandomcode").attr("disabled", false);
+                                $("#getrandomcode").val("获取验证码");
+                            };
+                        }, 1000);
+                    } else if (domType == "btnBindOld") {
+                        var maxtime2 = "60";
+                        timer2 = setInterval(function() {
+                            if (maxtime2 >= 0) {
+                                seconds2 = maxtime2;
+                                $("#getrandomcode2").val(seconds2 + "s后重新获取");
+                                $("#getrandomcode2").attr("disabled", true);
+                                --maxtime2;
+                                window.sessionStorage.time2 = maxtime2;
+                            } else {
+                                clearInterval(timer2);
+                                window.sessionStorage.time2 = undefined;
+                                $("#getrandomcode2").attr("disabled", false);
+                                $("#getrandomcode2").val("获取验证码");
+                            };
+                        }, 1000);
+                    };
                 } else {
                     layer.msg("验证码发送失败，请重新获取");
                 };
@@ -1014,7 +1114,8 @@ var init_changeBindPhone = function() {
     //点击获取验证码按钮
     var node = $("#getrandomcode2");
     var useToDo = "useToPay";
-    getCode(node, useToDo);
+    var domType = "btnBindOld";
+    getCode(node, useToDo, domType);
 
     //验证用户原绑定手机号码
     $("#checkOldPhone").click(function() {
@@ -1136,7 +1237,7 @@ var init_changeBindPhone = function() {
             contentType: 'application/text;charset=UTF-8',
             beforeSend: function() {
                 $('#changeToBind').attr("disabled", true);
-                $('#changeToBind').text("电话绑定中");
+                $('#changeToBind').text("绑定中");
             },
             success: function(data) {
                 var result = utf8to16(base64decode(data.replace(/\s/g, '')));
@@ -1145,6 +1246,11 @@ var init_changeBindPhone = function() {
                 if (result.msg == "success") {
                     layer.msg('绑定成功', { icon: 1 });
                     window.sessionStorage.spMobile = bindPhoneVal;
+                    $("#defaultPhone").html(window.sessionStorage.spMobile);
+                    clearInterval(timer2);
+                    window.sessionStorage.time2 = undefined;
+                    $("#getrandomcode2").attr("disabled", false);
+                    $("#getrandomcode2").val("获取验证码");
                     $(".backside").animate({ "opacity": "0" }, 1000);
                     $(".faceside").animate({ "opacity": "1" }, 1000);
                     $(".changebox").css("transform", "rotateY(360deg)");
@@ -1156,7 +1262,7 @@ var init_changeBindPhone = function() {
             },
             complete: function() {
                 $('#changeToBind').removeAttr("disabled");
-                $('#changeToBind').text("绑定手机号");
+                $('#changeToBind').text("绑 定");
             },
             error: function(err) {
                 layer.msg('绑定失败');
